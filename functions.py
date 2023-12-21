@@ -75,9 +75,3 @@ def someStrategy():
     # open order
     # close order
     pass
-
-def get_jsonparsed_data(url):
-    response = urlopen(url)
-    data = response.read().decode("utf-8")
-    return json.loads(data)
-
