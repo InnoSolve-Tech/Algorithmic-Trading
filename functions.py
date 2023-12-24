@@ -8,34 +8,32 @@ import requests
 import json
 import matplotlib.pyplot as plt
 import ta
+import pytz
 
 _url = "https://financialmodelingprep.com/api/v3"
 
 
 
 # Function to fetch past data from a financial API
-def fetchPastData() -> pd.DataFrame:
-    # Get current datetime and the datetime 24 hours ago
-    current_datetime = datetime.now()
-    twenty_four_hours_ago = current_datetime - timedelta(hours=24)
-    
-    # Format datetimes as strings
-    current_datetime_str = current_datetime.strftime("%Y-%m-%d")
-    twenty_four_hours_ago_str = twenty_four_hours_ago.strftime("%Y-%m-%d")
-    
-    # Construct API URL for historical data
-    url = f"{_url}/historical-chart/1min/EURUSD?from={twenty_four_hours_ago_str}&to={current_datetime_str}&apikey=6bc8db76d4772b720e6f7decc2e48fb0"
-    
-    # Make a request to the API and normalize JSON response into a DataFrame
-    response: requests.Response = requests.get(url)
-    df = pd.json_normalize(response.json(), meta=["date", "open", "low", "high", "close"])
-    return df
+def fetchPastData(mt5) -> pd.DataFrame:
+    # Create an empty data frame to store the range bar data
+    df = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close'])
+    # Get the current time
+    # set time zone to UTC
+    timezone = pytz.timezone("Etc/UTC")
+    # create 'datetime' object in UTC time zone to avoid the implementation of a local time zone offset
+    utc_from = datetime.now(timezone) - timedelta(hours=24)
+    # get 10 EURUSD H4 bars starting from 01.10.2020 in UTC time zone
+    rates = mt5.copy_rates_from("EURUSD", mt5.TIMEFRAME_M1, utc_from, 10)
+    # create DataFrame out of the obtained data
+    rates_frame = pd.DataFrame(rates)
+   
+    return rates_frame
 
 # Function to filter and preprocess data
 def filterData(data: pd.DataFrame) -> pd.DataFrame:
-    # Convert the "date" column to timestamp format and drop the original "date" column
-    data["timestamp"] = data["date"].apply(lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S").timestamp())
-    data.drop("date", axis=1, inplace=True)
+     # convert time in seconds into the datetime format
+    data['time']=pd.to_datetime(data['time'], unit='s')
     return data
 
 # Function to calculate technical indicators
@@ -43,9 +41,9 @@ def calcTools(data: pd.DataFrame) -> pd.DataFrame:
     # Calculate additional technical indicators and add them to the DataFrame
     data['EMA_short'] = ta.trend.ema_indicator(data['close'], window=20)
     data['EMA_long'] = ta.trend.ema_indicator(data['close'], window=50)
-    data['RSI'] = ta.momentum.rsi(data['close'], window=14)
-    data['ATR'] = ta.volatility.average_true_range(data['high'], data['low'], data['close'], window=14)
-    data['MACD'] = ta.trend.macd_diff(data['close'], window_slow=26, window_fast=12, window_sign=9)
+    #data['RSI'] = ta.momentum.rsi(data['close'], window=14)
+    #data['ATR'] = ta.volatility.average_true_range(data['high'], data['low'], data['close'], window=14)
+    #data['MACD'] = ta.trend.macd_diff(data['close'], window_slow=26, window_fast=12, window_sign=9)
     return data
 
 # Function to display the last 50 values in a plot
