@@ -20,8 +20,8 @@ def fetchPastData() -> pd.DataFrame:
     twenty_four_hours_ago = current_datetime - timedelta(hours=24)
     
     # Format datetimes as strings
-    current_datetime_str = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
-    twenty_four_hours_ago_str = twenty_four_hours_ago.strftime("%Y-%m-%d %H:%M:%S")
+    current_datetime_str = current_datetime.strftime("%Y-%m-%d")
+    twenty_four_hours_ago_str = twenty_four_hours_ago.strftime("%Y-%m-%d")
     
     # Construct API URL for historical data
     url = f"{_url}/historical-chart/1min/EURUSD?from={twenty_four_hours_ago_str}&to={current_datetime_str}&apikey=6bc8db76d4772b720e6f7decc2e48fb0"
@@ -41,8 +41,8 @@ def filterData(data: pd.DataFrame) -> pd.DataFrame:
 # Function to calculate technical indicators
 def calcTools(data: pd.DataFrame) -> pd.DataFrame:
     # Calculate additional technical indicators and add them to the DataFrame
-    data['EMA_short'] = ta.trend.ema_indicator(data['close'], window=12)
-    data['EMA_long'] = ta.trend.ema_indicator(data['close'], window=26)
+    data['EMA_short'] = ta.trend.ema_indicator(data['close'], window=20)
+    data['EMA_long'] = ta.trend.ema_indicator(data['close'], window=50)
     data['RSI'] = ta.momentum.rsi(data['close'], window=14)
     data['ATR'] = ta.volatility.average_true_range(data['high'], data['low'], data['close'], window=14)
     data['MACD'] = ta.trend.macd_diff(data['close'], window_slow=26, window_fast=12, window_sign=9)
