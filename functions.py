@@ -9,14 +9,15 @@ import ta
 _url = "https://financialmodelingprep.com/api/v3"
 
 
+plt.ion()
 
 # Function to fetch past data from a financial API
 def fetchPastData(mt5) -> pd.DataFrame:
     # Get the current time
     # create 'datetime' object in UTC time zone to avoid the implementation of a local time zone offset
-    utc_from = datetime.now() - timedelta(hours=24)
+    utc_from = datetime.now() - timedelta(hours=4)
     # get 10 EURUSD H4 bars starting from 01.10.2020 in UTC time zone
-    rates = mt5.copy_rates_from("EURUSD", mt5.TIMEFRAME_M1, utc_from, 60)
+    rates = mt5.copy_rates_from("EURUSD", mt5.TIMEFRAME_M1, utc_from, 500)
     # create DataFrame out of the obtained data
     rates_frame = pd.DataFrame(rates)
     return rates_frame
@@ -43,16 +44,15 @@ def displayTicks(data: pd.DataFrame, ax=None):
     if ax is None:
         # Set up the initial plot is ax is None.
         fig, ax = plt.subplots()
-
     # Plot only the last 50 values
-    start_index = max(0, len(data) - 50)
+    start_index = -10
     ax.clear()
     ax.plot(data['timestamp'].iloc[start_index:], data['high'].iloc[start_index:], label='High', linestyle='-', marker='o', color='blue')
     ax.plot(data['timestamp'].iloc[start_index:], data['low'].iloc[start_index:], label='Low', linestyle='-', marker='o', color='green')
     ax.plot(data['timestamp'].iloc[start_index:], data['EMA_short'].iloc[start_index:], label='EMA Short', linestyle='-', marker='o', color='red')
     ax.plot(data['timestamp'].iloc[start_index:], data['EMA_long'].iloc[start_index:], label='EMA Long', linestyle='-', marker='o', color='orange')
     ax.legend()
-    ax.set_title("Initial Plot of Last 50 Values with Technical Indicators")
+    ax.set_title("Initial Plot of Last 20 Values with Technical Indicators")
     ax.set_xlabel("Timestamp")
     ax.set_ylabel("Price")
     
@@ -60,24 +60,16 @@ def displayTicks(data: pd.DataFrame, ax=None):
     plt.show()
 
 def ticksUpdate(mt5, data: pd.DataFrame, ax=None):
-    # Append the new row to the existing data
     utc_from = datetime.now()
-    # Get new tick.
     new_row = mt5.copy_rates_from("EURUSD", mt5.TIMEFRAME_M1, utc_from, 1)
-    # Convert the numpy array to a Dataframe.
     new_row = pd.DataFrame(new_row)
-    # Convert timestamp to date.
     new_row = filterData(new_row)
-    # Add new row to current data.
-    data = pd.concat([data, new_row], ignore_index=True)
-    # Display the new data.
+    data.loc[data.index.max() + 1] = new_row.iloc[0]
     displayTicks(data, ax)
 
 
-def someStrategy():
-    # Strategy algorithm
 
-    def someStrategy(data: pd.DataFrame, capital=10000):
+def someStrategy(data: pd.DataFrame, capital=10000):
     # Initialize positions
     position = 0  # 0 for no position, 1 for long, -1 for short
 
@@ -98,9 +90,7 @@ def someStrategy():
             capital += data['close'].iloc[i]  # Add the sell price to capital
             print(f"Sell: {data['timestamp'].iloc[i]}, Price: {data['close'].iloc[i]}, Capital: {capital}")
 
-    # If there's an open position at the end, close it ......or close order
-    if position == 1:
-        capital += data['close'].iloc[-1]  # Add the last close price to capital
-        print(f"Close Position: {data['timestamp'].iloc[-1]}, Price: {data['close'].iloc[-1]}, Capital: {capital}")
-        
-    pass
+            # If there's an open position at the end, close it ......or close order
+            if position == 1:
+                capital += data['close'].iloc[-1]  # Add the last close price to capital
+                print(f"Close Position: {data['timestamp'].iloc[-1]}, Price: {data['close'].iloc[-1]}, Capital: {capital}")
