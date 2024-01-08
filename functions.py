@@ -76,6 +76,31 @@ def ticksUpdate(mt5, data: pd.DataFrame, ax=None):
 
 def someStrategy():
     # Strategy algorithm
-    # open order
-    # close order
+
+    def someStrategy(data: pd.DataFrame, capital=10000):
+    # Initialize positions
+    position = 0  # 0 for no position, 1 for long, -1 for short
+
+    # Iterate through the DataFrame starting from the second row
+    for i in range(1, len(data)):
+        # Check for EMA_short crossing over EMA_long (potential buy signal)
+        if data['EMA_short'].iloc[i - 1] <= data['EMA_long'].iloc[i - 1] and data['EMA_short'].iloc[i] > data['EMA_long'].iloc[i] and position == 0:
+            #or open order
+            # Execute a buy order
+            position = 1
+            capital -= data['close'].iloc[i]  # Subtract the buy price from capital
+            print(f"Buy: {data['timestamp'].iloc[i]}, Price: {data['close'].iloc[i]}, Capital: {capital}")
+
+        # Check for EMA_short crossing under EMA_long (potential sell signal)
+        elif data['EMA_short'].iloc[i - 1] >= data['EMA_long'].iloc[i - 1] and data['EMA_short'].iloc[i] < data['EMA_long'].iloc[i] and position == 1:
+            # Execute a sell order
+            position = 0
+            capital += data['close'].iloc[i]  # Add the sell price to capital
+            print(f"Sell: {data['timestamp'].iloc[i]}, Price: {data['close'].iloc[i]}, Capital: {capital}")
+
+    # If there's an open position at the end, close it ......or close order
+    if position == 1:
+        capital += data['close'].iloc[-1]  # Add the last close price to capital
+        print(f"Close Position: {data['timestamp'].iloc[-1]}, Price: {data['close'].iloc[-1]}, Capital: {capital}")
+        
     pass
