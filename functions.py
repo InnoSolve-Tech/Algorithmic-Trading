@@ -62,11 +62,15 @@ def displayTicks(data: pd.DataFrame, ax=None):
 def ticksUpdate(mt5, data: pd.DataFrame, ax=None):
     # Append the new row to the existing data
     utc_from = datetime.now()
-
+    # Get new tick.
     new_row = mt5.copy_rates_from("EURUSD", mt5.TIMEFRAME_M1, utc_from, 1)
+    # Convert the numpy array to a Dataframe.
     new_row = pd.DataFrame(new_row)
+    # Convert timestamp to date.
     new_row = filterData(new_row)
+    # Add new row to current data.
     data = pd.concat([data, new_row], ignore_index=True)
+    # Display the new data.
     displayTicks(data, ax)
 
 
