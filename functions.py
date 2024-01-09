@@ -3,13 +3,10 @@ Functions for receiving modifying, reshaping and editing the data got from the H
 """
 import pandas as pd
 from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
 import ta
 
 _url = "https://financialmodelingprep.com/api/v3"
 
-
-plt.ion()
 
 # Function to fetch past data from a financial API
 def fetchPastData(mt5) -> pd.DataFrame:
@@ -39,7 +36,7 @@ def calcTools(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 # Function to display the last 50 values in a plot
-def displayTicks(data: pd.DataFrame, ax=None):
+def displayTicks(data: pd.DataFrame, plt, ax=None):
     data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s')
     if ax is None:
         # Set up the initial plot is ax is None.
@@ -56,8 +53,6 @@ def displayTicks(data: pd.DataFrame, ax=None):
     ax.set_xlabel("Timestamp")
     ax.set_ylabel("Price")
     
-    # Display the plot
-    plt.show()
 
 def ticksUpdate(mt5, data: pd.DataFrame, ax=None):
     utc_from = datetime.now()
@@ -66,6 +61,7 @@ def ticksUpdate(mt5, data: pd.DataFrame, ax=None):
     new_row = filterData(new_row)
     data.loc[data.index.max() + 1] = new_row.iloc[0]
     displayTicks(data, ax)
+    return data
 
 
 
