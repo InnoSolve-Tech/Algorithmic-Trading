@@ -54,13 +54,13 @@ def displayTicks(data: pd.DataFrame, plt, ax=None):
     ax.set_ylabel("Price")
     
 
-def ticksUpdate(mt5, data: pd.DataFrame, ax=None):
+def ticksUpdate(mt5, data: pd.DataFrame,plt, ax=None):
     utc_from = datetime.now()
     new_row = mt5.copy_rates_from("EURUSD", mt5.TIMEFRAME_M1, utc_from, 1)
     new_row = pd.DataFrame(new_row)
     new_row = filterData(new_row)
     data.loc[data.index.max() + 1] = new_row.iloc[0]
-    displayTicks(data, ax)
+    displayTicks(data,plt, ax)
     return data
 
 
