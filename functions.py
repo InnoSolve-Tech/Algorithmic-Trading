@@ -1,6 +1,7 @@
 """
 Functions for receiving modifying, reshaping and editing the data got from the HF servers.
 """
+from matplotlib.animation import FuncAnimation
 import pandas as pd
 from datetime import datetime, timedelta
 import ta
@@ -36,33 +37,32 @@ def calcTools(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 # Function to display the last 50 values in a plot
-def displayTicks(data: pd.DataFrame, plt, ax=None):
+def displayTicks(data: pd.DataFrame,plt ,ax=None):
     data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s')
     if ax is None:
-        # Set up the initial plot is ax is None.
         fig, ax = plt.subplots()
-    # Plot only the last 50 values
-    start_index = -10
+    start_index = -50
     ax.clear()
     ax.plot(data['timestamp'].iloc[start_index:], data['high'].iloc[start_index:], label='High', linestyle='-', marker='o', color='blue')
     ax.plot(data['timestamp'].iloc[start_index:], data['low'].iloc[start_index:], label='Low', linestyle='-', marker='o', color='green')
     ax.plot(data['timestamp'].iloc[start_index:], data['EMA_short'].iloc[start_index:], label='EMA Short', linestyle='-', marker='o', color='red')
     ax.plot(data['timestamp'].iloc[start_index:], data['EMA_long'].iloc[start_index:], label='EMA Long', linestyle='-', marker='o', color='orange')
     ax.legend()
-    ax.set_title("Initial Plot of Last 20 Values with Technical Indicators")
+    ax.set_title("Real-Time Plot of Last 50 Values with Technical Indicators")
     ax.set_xlabel("Timestamp")
     ax.set_ylabel("Price")
-    
 
-def ticksUpdate(mt5, data: pd.DataFrame,plt, ax=None):
-    utc_from = datetime.now()
-    new_row = mt5.copy_rates_from("EURUSD", mt5.TIMEFRAME_M1, utc_from, 1)
-    new_row = pd.DataFrame(new_row)
-    new_row = filterData(new_row)
-    data.loc[data.index.max() + 1] = new_row.iloc[0]
-    displayTicks(data,plt, ax)
-    return data
+def ticksUpdate(mt5, data: pd.DataFrame, plt, ax=None):
+    def update(frame):
+        utc_from = datetime.now()
+        new_row = mt5.copy_rates_from("EURUSD", mt5.TIMEFRAME_M1, utc_from, 1)
+        new_row = pd.DataFrame(new_row)
+        new_row = filterData(new_row)
+        data.loc[data.index.max() + 1] = new_row.iloc[0]
+        displayTicks(data, ax)
 
+    FuncAnimation(plt.gcf(), update, interval=1000)  # Update every 1000 milliseconds (1 second)
+    plt.show()
 
 
 def someStrategy(data: pd.DataFrame, capital=10000):
